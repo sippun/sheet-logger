@@ -111,7 +111,6 @@ public class MainActivity extends Activity
     }
 
 
-
     /**
      * Attempt to call the API, after verifying that all the preconditions are
      * satisfied. The preconditions are: Google Play Services installed, an
@@ -349,17 +348,21 @@ public class MainActivity extends Activity
          * @throws IOException
          */
         private List<String> getDataFromApi() throws IOException {
-            String spreadsheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
-            String range = "Class Data!A2:E";
+            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
+            // Access current day's tasks
+//            Calendar c = Calendar.getInstance();
+//            int date = c.get(Calendar.DAY_OF_MONTH);
+//            int row = date - 2;
+//            String range = "Tracking Log!" + "B" + row + ":F";
+            String range = "Tracking Log!B2:F2";
             List<String> results = new ArrayList<String>();
             ValueRange response = this.mService.spreadsheets().values()
                     .get(spreadsheetId, range)
                     .execute();
             List<List<Object>> values = response.getValues();
             if (values != null) {
-                results.add("Name, Major");
-                for (List row : values) {
-                    results.add(row.get(0) + ", " + row.get(4));
+                for (Object s : values.get(0)) {
+                    results.add(s.toString());
                 }
             }
             return results;
