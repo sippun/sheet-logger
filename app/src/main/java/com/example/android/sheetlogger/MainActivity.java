@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS_READONLY };
+    public static final String[] SCOPES = { SheetsScopes.SPREADSHEETS_READONLY };
 
     /**
      * Create the main activity.

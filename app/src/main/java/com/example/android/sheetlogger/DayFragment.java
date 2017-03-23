@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -23,6 +19,7 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,7 +30,7 @@ import java.util.List;
  * Encapsulates fetching the items for the day and displaying them in a {@link ListView} layout.
  */
 public class DayFragment extends Fragment {
-    GoogleCredential mCredential;
+    GoogleAccountCredential mCredential;
     private ArrayAdapter<String> mDayAdapter;
 
     public DayFragment() {
@@ -42,14 +39,35 @@ public class DayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mCredential = GoogleCredential.getApplicationDefault();
+        mCredential = GoogleAccountCredential.usingOAuth2(getActivity(),
+                    Arrays.asList(MainActivity.SCOPES));
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        // The ArrayAdapter will take data from a source and
+        // use it to populate the ListView it's attached to.
+        mDayAdapter =
+                new ArrayAdapter<String>(
+                        getActivity(), // The current context (this activity)
+                        R.layout.fragment_main, // The name of the layout ID.
+                        R.id.list_item_day_textview, // The ID of the textview to populate.
+                        new ArrayList<String>());
+
+        // Get a reference to the ListView, and attach this adapter to it.
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
+        listView.setAdapter(mDayAdapter);
+
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        new MakeRequestTask(mCredential).execute();
     }
 
     /**
@@ -97,7 +115,7 @@ public class DayFragment extends Fragment {
 //            int date = c.get(Calendar.DAY_OF_MONTH);
 //            int row = date - 2;
 //            String range = "Tracking Log!" + "B" + row + ":F";
-            String range = "Tracking Log!B2:F2";
+            String range = "Tracking Log!B2:G2";
             List<String> results = new ArrayList<String>();
             ValueRange response = this.mService.spreadsheets().values()
                     .get(spreadsheetId, range)
@@ -111,44 +129,46 @@ public class DayFragment extends Fragment {
             return results;
         }
 
-
-
-        @Override
-        protected void onPreExecute() {
-            mOutputText.setText("");
-            mProgress.show();
-        }
+//        @Override
+//        protected void onPreExecute() {
+//            mOutputText.setText("");
+//            mProgress.show();
+//        }
 
         @Override
         protected void onPostExecute(List<String> output) {
-            mProgress.hide();
+//            mProgress.hide();
             if (output == null || output.size() == 0) {
-                mOutputText.setText("No results returned.");
+//                mOutputText.setText("No results returned.");
             } else {
-                output.add(0, "Data retrieved using the Google Sheets API:");
-                mOutputText.setText(TextUtils.join("\n", output));
+//                output.add(0, "Data retrieved using the Google Sheets API:");
+//                mOutputText.setText(TextUtils.join("\n", output));
+                mDayAdapter.clear();
+                for (String task : output) {
+                    mDayAdapter.add(task);
+                }
             }
         }
 
-        @Override
-        protected void onCancelled() {
-            mProgress.hide();
-            if (mLastError != null) {
-                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
-                    showGooglePlayServicesAvailabilityErrorDialog(
-                            ((GooglePlayServicesAvailabilityIOException) mLastError)
-                                    .getConnectionStatusCode());
-                } else if (mLastError instanceof UserRecoverableAuthIOException) {
-                    startActivityForResult(
-                            ((UserRecoverableAuthIOException) mLastError).getIntent(),
-                            MainActivity.REQUEST_AUTHORIZATION);
-                } else {
-                    mOutputText.setText("The following error occurred:\n"
-                            + mLastError.getMessage());
-                }
-            } else {
-                mOutputText.setText("Request cancelled.");
-            }
-        }
+//        @Override
+//        protected void onCancelled() {
+//            mProgress.hide();
+//            if (mLastError != null) {
+//                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+//                    showGooglePlayServicesAvailabilityErrorDialog(
+//                            ((GooglePlayServicesAvailabilityIOException) mLastError)
+//                                    .getConnectionStatusCode());
+//                } else if (mLastError instanceof UserRecoverableAuthIOException) {
+//                    startActivityForResult(
+//                            ((UserRecoverableAuthIOException) mLastError).getIntent(),
+//                            MainActivity.REQUEST_AUTHORIZATION);
+//                } else {
+//                    mOutputText.setText("The following error occurred:\n"
+//                            + mLastError.getMessage());
+//                }
+//            } else {
+//                mOutputText.setText("Request cancelled.");
+//            }
+//        }
     }
 }
