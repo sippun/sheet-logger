@@ -19,7 +19,6 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,7 +29,6 @@ import java.util.List;
  * Encapsulates fetching the items for the day and displaying them in a {@link ListView} layout.
  */
 public class DayFragment extends Fragment {
-    GoogleAccountCredential mCredential;
     private ArrayAdapter<String> mDayAdapter;
 
     public DayFragment() {
@@ -39,8 +37,6 @@ public class DayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mCredential = GoogleAccountCredential.usingOAuth2(getActivity(),
-                    Arrays.asList(MainActivity.SCOPES));
     }
 
     @Nullable
@@ -147,7 +143,6 @@ public class DayFragment extends Fragment {
                 for (String task : output) {
                     mDayAdapter.add(task);
                 }
-                mDayAdapter.notifyDataSetChanged();
             }
         }
 
