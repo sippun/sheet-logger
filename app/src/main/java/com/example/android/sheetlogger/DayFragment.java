@@ -53,7 +53,7 @@ public class DayFragment extends Fragment {
         mDayAdapter =
                 new ArrayAdapter<String>(
                         getActivity(), // The current context (this activity)
-                        R.layout.fragment_main, // The name of the layout ID.
+                        R.layout.list_item_day, // The name of the layout ID.
                         R.id.list_item_day_textview, // The ID of the textview to populate.
                         new ArrayList<String>());
 
@@ -67,7 +67,7 @@ public class DayFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        new MakeRequestTask(mCredential).execute();
+        new MakeRequestTask(MainActivity.getCredential()).execute();
     }
 
     /**
@@ -147,6 +147,7 @@ public class DayFragment extends Fragment {
                 for (String task : output) {
                     mDayAdapter.add(task);
                 }
+                mDayAdapter.notifyDataSetChanged();
             }
         }
 

@@ -26,7 +26,7 @@ import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity
         implements EasyPermissions.PermissionCallbacks {
-    GoogleAccountCredential mCredential;
+    static GoogleAccountCredential mCredential;
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
@@ -57,6 +57,14 @@ public class MainActivity extends AppCompatActivity
                     .add(R.id.activity_main, new DayFragment())
                     .commit();
         }
+    }
+
+    /**
+     * Get a GoogleAccountCredential object to use
+     * @return GoogleAccountCredential object
+     */
+    public static GoogleAccountCredential getCredential() {
+        return mCredential; // TODO find a way to not use this method
     }
 
     /**
