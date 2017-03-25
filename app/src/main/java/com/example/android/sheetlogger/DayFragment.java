@@ -63,6 +63,7 @@ public class DayFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Integer[] pos = new Integer[1];
+                pos[0] = position;
                 new MakeUpdateTask(MainActivity.getCredential()).execute(pos);
             }
         });
@@ -112,7 +113,7 @@ public class DayFragment extends Fragment {
             // TODO change base column based on user
             // TODO get column as part of a class representing the item
             String column = String.valueOf(
-                    Character.toChars(Character.getNumericValue('B') + position));
+                    Character.toChars((int)('B') + position));
             // Get row (currently offset of date - 2)
             // TODO find row offset by comparing date in col A to today's date
             Calendar c = Calendar.getInstance();
