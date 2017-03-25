@@ -21,7 +21,6 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -125,8 +124,10 @@ public class DayFragment extends Fragment {
             // Create values to update spreadsheet with
             // TODO get and use data validation source
             ValueRange vals = new ValueRange();
-            List<List<String>> inputs = new ArrayList<>();
-            inputs.add(Collections.singletonList("✔"));
+            List<List<Object>> inputs = new ArrayList<>();
+            List<Object> in = new ArrayList<>();
+            in.add("✔");
+            vals.setValues(inputs);
             mService.spreadsheets().values().update(spreadsheetId, range, vals).execute();
         }
     }
