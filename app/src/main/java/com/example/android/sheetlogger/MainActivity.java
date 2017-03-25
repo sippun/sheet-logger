@@ -365,6 +365,19 @@ public class MainActivity extends Activity
                     results.add(s.toString());
                 }
             }
+            ValueRange vals = new ValueRange();
+            List<List<Object>> inputs = new ArrayList<>();
+            List<Object> in = new ArrayList<>();
+            in.add("✔");
+            in.add("A");
+            in.add(99);
+            inputs.add(in);
+            vals.setValues(inputs);
+            vals.setMajorDimension("ROWS");
+            mService.spreadsheets().values()
+                    .update(spreadsheetId, "Tracking Log!D32:G32", vals)
+                    .setValueInputOption("RAW")
+                    .execute();
             return results;
         }
 
