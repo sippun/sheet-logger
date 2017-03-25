@@ -20,6 +20,8 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -74,6 +76,10 @@ public class DayFragment extends Fragment {
         new MakeRequestTask(MainActivity.getCredential()).execute();
     }
 
+    /**
+     * An asynchronous task to handle updating the spreadsheet
+     * TODO merge to use one AsyncTask (?)
+     */
     private class MakeUpdateTask extends AsyncTask<Integer, Void, Void> {
         private com.google.api.services.sheets.v4.Sheets mService = null;
         private Exception mLastError = null;
@@ -91,6 +97,7 @@ public class DayFragment extends Fragment {
         protected Void doInBackground(Integer... params) {
             try {
                 updateSheet(params[0]);
+                return null;
             } catch (Exception e) {
                 mLastError = e;
                 cancel(true);
@@ -98,8 +105,28 @@ public class DayFragment extends Fragment {
             }
         }
 
-        private void  updateSheet(int item) {
-            
+        private void updateSheet(int position) throws IOException {
+            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
+            // Get column by incrementing base char representing column with
+            // position of item clicked in list
+            // TODO change base column based on user
+            // TODO get column as part of a class representing the item
+            String column = String.valueOf(
+                    Character.toChars(Character.getNumericValue('B') + position));
+            // Get row (currently offset of date - 2)
+            // TODO find row offset by comparing date in col A to today's date
+            Calendar c = Calendar.getInstance();
+            int date = c.get(Calendar.DAY_OF_MONTH);
+            int row = date - 2;
+            String cell = column + row;
+            String range = "Tracking Log!" + cell;
+
+            // Create values to update spreadsheet with
+            // TODO get and use data validation source
+            ValueRange vals = new ValueRange();
+            List<List<String>> inputs = new ArrayList<>();
+            inputs.add(Collections.singletonList("✔"));
+            mService.spreadsheets().values().update(spreadsheetId, range, vals).execute();
         }
     }
 
@@ -180,6 +207,7 @@ public class DayFragment extends Fragment {
                 for (String task : output) {
                     mDayAdapter.add(task);
                 }
+                mDayAdapter.notifyDataSetChanged();
             }
         }
 
