@@ -123,14 +123,15 @@ public class DayFragment extends Fragment {
 
             // Create values to update spreadsheet with
             // TODO get and use data validation source
-            ValueRange vals = new ValueRange();
-            List<List<Object>> inputs = new ArrayList<>();
+            ValueRange valueRange = new ValueRange();
+            List<List<Object>> values = new ArrayList<>();
             List<Object> in = new ArrayList<>();
             in.add("✔");
-            vals.setValues(inputs);
-            vals.setMajorDimension("ROWS");
+            values.add(in);
+            valueRange.setValues(values);
+            valueRange.setMajorDimension("ROWS");
             mService.spreadsheets().values()
-                    .update(spreadsheetId, range, vals)
+                    .update(spreadsheetId, range, valueRange)
                     .setValueInputOption("RAW")
                     .execute();
         }
