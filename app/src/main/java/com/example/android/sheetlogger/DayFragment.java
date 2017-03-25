@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -56,6 +57,13 @@ public class DayFragment extends Fragment {
         // Get a reference to the ListView, and attach this adapter to it.
         ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
         listView.setAdapter(mDayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Integer[] pos = new Integer[1];
+                new MakeUpdateTask(MainActivity.getCredential()).execute(pos);
+            }
+        });
 
         return rootView;
     }
@@ -64,6 +72,35 @@ public class DayFragment extends Fragment {
     public void onStart() {
         super.onStart();
         new MakeRequestTask(MainActivity.getCredential()).execute();
+    }
+
+    private class MakeUpdateTask extends AsyncTask<Integer, Void, Void> {
+        private com.google.api.services.sheets.v4.Sheets mService = null;
+        private Exception mLastError = null;
+
+        MakeUpdateTask(GoogleAccountCredential credential) {
+            HttpTransport transport = AndroidHttp.newCompatibleTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+            mService = new com.google.api.services.sheets.v4.Sheets.Builder(
+                    transport, jsonFactory, credential)
+                    .setApplicationName("Sheet Logger")
+                    .build();
+        }
+
+        @Override
+        protected Void doInBackground(Integer... params) {
+            try {
+                updateSheet(params[0]);
+            } catch (Exception e) {
+                mLastError = e;
+                cancel(true);
+                return null;
+            }
+        }
+
+        private void  updateSheet(int item) {
+            
+        }
     }
 
     /**
