@@ -128,7 +128,11 @@ public class DayFragment extends Fragment {
             List<Object> in = new ArrayList<>();
             in.add("✔");
             vals.setValues(inputs);
-            mService.spreadsheets().values().update(spreadsheetId, range, vals).execute();
+            vals.setMajorDimension("ROWS");
+            mService.spreadsheets().values()
+                    .update(spreadsheetId, range, vals)
+                    .setValueInputOption("RAW")
+                    .execute();
         }
     }
 
