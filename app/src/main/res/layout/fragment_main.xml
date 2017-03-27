@@ -4,10 +4,20 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity$DayFragment">>
+    tools:context=".MainActivity$DayFragment">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Today"
+        android:textSize="26sp"
+        android:textColor="@android:color/white"
+        android:background="@android:color/holo_blue_dark"
+        android:gravity="center"
+        />
     <ListView
         android:id="@+id/listview_today"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:divider="@null"/>
 </LinearLayout>

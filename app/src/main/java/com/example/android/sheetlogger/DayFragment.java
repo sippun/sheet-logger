@@ -1,6 +1,7 @@
 package com.example.android.sheetlogger;
 
 import android.app.Fragment;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -31,8 +32,10 @@ import java.util.List;
  * Encapsulates fetching the items for the day and displaying them in a {@link ListView} layout.
  */
 public class DayFragment extends Fragment {
+    // TODO create class to represent task and change adapter to use that type
     private ArrayAdapter<String> mDayAdapter;
 
+    // TODO create local list of items
     public DayFragment() {
     }
 
@@ -56,7 +59,7 @@ public class DayFragment extends Fragment {
                         new ArrayList<String>());
 
         // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
+        final ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
         listView.setAdapter(mDayAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -64,6 +67,7 @@ public class DayFragment extends Fragment {
                 Integer[] pos = new Integer[1];
                 pos[0] = position;
                 new MakeUpdateTask(MainActivity.getCredential()).execute(pos);
+                listView.getChildAt(position).setBackgroundColor(Color.DKGRAY);
             }
         });
 
