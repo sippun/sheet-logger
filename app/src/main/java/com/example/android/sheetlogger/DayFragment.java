@@ -17,6 +17,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class DayFragment extends Fragment {
     // TODO create class to represent task and change adapter to use that type
     private ArrayAdapter<String> mDayAdapter;
 
-    // TODO create local list of items
+    // TODO create local list of items to use offline, then sync when available
 
     // A type to tell the AsyncTask what operation to perform on the API
     private enum Request {GET, SET}
@@ -95,6 +96,8 @@ public class DayFragment extends Fragment {
         private com.google.api.services.sheets.v4.Sheets mService = null;
         private Exception mLastError = null;
         private Request request;
+        ArrayList<Boolean> highlights; // track if items have been checked off
+        private final String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
 
         MakeRequestTask(GoogleAccountCredential credential, Request req) {
             HttpTransport transport = AndroidHttp.newCompatibleTransport();
@@ -104,11 +107,14 @@ public class DayFragment extends Fragment {
                     .setApplicationName("Sheet Logger")
                     .build();
             request = req;
+            highlights = new ArrayList<>();
         }
 
         /**
          * Background task to call Google Sheets API.
-         * @param params no parameters needed for this task.
+         * @param params If request type = SET, array of Integers denoting which
+         *               columns to be written to.
+         *               If request type = GET, not needed.
          */
         @Override
         protected List<String> doInBackground(Integer... params) {
@@ -126,34 +132,47 @@ public class DayFragment extends Fragment {
         }
 
         /**
-         * Fetch a list of names and majors of students in a sample spreadsheet:
-         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-         * @return List of names and majors
+         * Fetch a list of tasks to be done for the day, TODO and their completion status
+         * @return List of tasks as Strings TODO List of tasks as objects
          * @throws IOException
          */
         private List<String> getDataFromApi() throws IOException {
-            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
-            // Access current day's tasks
-//            Calendar c = Calendar.getInstance();
-//            int date = c.get(Calendar.DAY_OF_MONTH);
-//            int row = date - 2;
-//            String range = "Tracking Log!" + "B" + row + ":F";
-            String range = "Tracking Log!B2:G2";
-            List<String> results = new ArrayList<String>();
-            ValueRange response = this.mService.spreadsheets().values()
-                    .get(spreadsheetId, range)
+            // TODO dynamically find column based on spreadsheet/user
+            List<String> findRanges = new ArrayList<>();
+            findRanges.add("Tracking Log!B2:G2");
+            String row = Integer.toString(getTodayRow());
+            String range = "Tracking Log!B" + row + ":G" + row;
+            findRanges.add(range);
+
+            BatchGetValuesResponse response = this.mService.spreadsheets().values()
+                    .batchGet(spreadsheetId)
+                    .setRanges(findRanges)
+                    .setMajorDimension("ROWS")
                     .execute();
-            List<List<Object>> values = response.getValues();
-            if (values != null) {
-                for (Object s : values.get(0)) {
+            List<ValueRange> ranges = response.getValueRanges();
+
+            // Response containing names of the tasks
+            List<List<Object>> tasks = ranges.get(0).getValues();
+            List<String> results = new ArrayList<>();
+            if (tasks != null) {
+                for (Object s : tasks.get(0)) {
                     results.add(s.toString());
                 }
             }
+
+            // Response containing data entered for today
+            List<List<Object>> data = ranges.get(1).getValues();
+            highlights.clear();
+            if (data != null) {
+                for (Object s : data.get(0)) {
+                    highlights.add(s.toString().equals("✔"));
+                }
+            }
+
             return results;
         }
 
         private void updateSheet(int position) throws IOException {
-            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
             // Get column by incrementing base char representing column with
             // position of item clicked in list
             // TODO change base column based on user
@@ -161,10 +180,7 @@ public class DayFragment extends Fragment {
             String column = String.valueOf(
                     Character.toChars((int)('B') + position));
             // Get row (currently offset of date - 2)
-            // TODO find row offset by comparing date in col A to today's date
-            Calendar c = Calendar.getInstance();
-            int date = c.get(Calendar.DAY_OF_MONTH);
-            int row = date - 2;
+            int row = getTodayRow();
             String cell = column + row;
             String range = "Tracking Log!" + cell;
 
@@ -181,6 +197,17 @@ public class DayFragment extends Fragment {
                     .update(spreadsheetId, range, valueRange)
                     .setValueInputOption("RAW")
                     .execute();
+        }
+
+        /**
+         * Get the row corresponding to today's date on the spreadsheet
+          */
+        private int getTodayRow() {
+            // TODO find row offset by comparing date in col A to today's date
+            Calendar c = Calendar.getInstance();
+            int date = c.get(Calendar.DAY_OF_MONTH);
+            int offset = 2; // currently the offset is - 2
+            return date - offset; // if today is the 27th, we want row 25
         }
 
 //        @Override
