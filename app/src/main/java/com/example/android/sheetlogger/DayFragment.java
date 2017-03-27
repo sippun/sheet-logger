@@ -36,6 +36,10 @@ public class DayFragment extends Fragment {
     private ArrayAdapter<String> mDayAdapter;
 
     // TODO create local list of items
+
+    // A type to tell the AsyncTask what operation to perform on the API
+    private enum Request {GET, SET}
+
     public DayFragment() {
     }
 
@@ -66,7 +70,8 @@ public class DayFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Integer[] pos = new Integer[1];
                 pos[0] = position;
-                new MakeUpdateTask(MainActivity.getCredential()).execute(pos);
+                new MakeRequestTask(MainActivity.getCredential(),
+                        Request.SET).execute(pos);
                 listView.getChildAt(position).setBackgroundColor(Color.DKGRAY);
             }
         });
@@ -77,85 +82,28 @@ public class DayFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        new MakeRequestTask(MainActivity.getCredential()).execute();
+        new MakeRequestTask(MainActivity.getCredential(),
+                Request.GET)
+                .execute();
     }
 
     /**
-     * An asynchronous task to handle updating the spreadsheet
-     * TODO merge to use one AsyncTask (?)
-     */
-    private class MakeUpdateTask extends AsyncTask<Integer, Void, Void> {
-        private com.google.api.services.sheets.v4.Sheets mService = null;
-        private Exception mLastError = null;
-
-        MakeUpdateTask(GoogleAccountCredential credential) {
-            HttpTransport transport = AndroidHttp.newCompatibleTransport();
-            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-            mService = new com.google.api.services.sheets.v4.Sheets.Builder(
-                    transport, jsonFactory, credential)
-                    .setApplicationName("Sheet Logger")
-                    .build();
-        }
-
-        @Override
-        protected Void doInBackground(Integer... params) {
-            try {
-                updateSheet(params[0]);
-                return null;
-            } catch (Exception e) {
-                mLastError = e;
-                cancel(true);
-                return null;
-            }
-        }
-
-        private void updateSheet(int position) throws IOException {
-            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
-            // Get column by incrementing base char representing column with
-            // position of item clicked in list
-            // TODO change base column based on user
-            // TODO get column as part of a class representing the item
-            String column = String.valueOf(
-                    Character.toChars((int)('B') + position));
-            // Get row (currently offset of date - 2)
-            // TODO find row offset by comparing date in col A to today's date
-            Calendar c = Calendar.getInstance();
-            int date = c.get(Calendar.DAY_OF_MONTH);
-            int row = date - 2;
-            String cell = column + row;
-            String range = "Tracking Log!" + cell;
-
-            // Create values to update spreadsheet with
-            // TODO get and use data validation source
-            ValueRange valueRange = new ValueRange();
-            List<List<Object>> values = new ArrayList<>();
-            List<Object> in = new ArrayList<>();
-            in.add("✔");
-            values.add(in);
-            valueRange.setValues(values);
-            valueRange.setMajorDimension("ROWS");
-            mService.spreadsheets().values()
-                    .update(spreadsheetId, range, valueRange)
-                    .setValueInputOption("RAW")
-                    .execute();
-        }
-    }
-
-    /**
-     * An asynchronous task that handles the Google Sheets API call.
+     * An asynchronous task that handles the Google Sheets API calls.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-    private class MakeRequestTask extends AsyncTask<Void, Void, List<String>> {
+    private class MakeRequestTask extends AsyncTask<Integer, Void, List<String>> {
         private com.google.api.services.sheets.v4.Sheets mService = null;
         private Exception mLastError = null;
+        private Request request;
 
-        MakeRequestTask(GoogleAccountCredential credential) {
+        MakeRequestTask(GoogleAccountCredential credential, Request req) {
             HttpTransport transport = AndroidHttp.newCompatibleTransport();
             JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             mService = new com.google.api.services.sheets.v4.Sheets.Builder(
                     transport, jsonFactory, credential)
                     .setApplicationName("Sheet Logger")
                     .build();
+            request = req;
         }
 
         /**
@@ -163,9 +111,13 @@ public class DayFragment extends Fragment {
          * @param params no parameters needed for this task.
          */
         @Override
-        protected List<String> doInBackground(Void... params) {
+        protected List<String> doInBackground(Integer... params) {
             try {
-                return getDataFromApi();
+                if (request == Request.GET)
+                    return getDataFromApi();
+                else if (request == Request.SET)
+                    updateSheet(params[0]);
+                return null;
             } catch (Exception e) {
                 mLastError = e;
                 cancel(true);
@@ -198,6 +150,37 @@ public class DayFragment extends Fragment {
                 }
             }
             return results;
+        }
+
+        private void updateSheet(int position) throws IOException {
+            String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
+            // Get column by incrementing base char representing column with
+            // position of item clicked in list
+            // TODO change base column based on user
+            // TODO get column as part of a class representing the item
+            String column = String.valueOf(
+                    Character.toChars((int)('B') + position));
+            // Get row (currently offset of date - 2)
+            // TODO find row offset by comparing date in col A to today's date
+            Calendar c = Calendar.getInstance();
+            int date = c.get(Calendar.DAY_OF_MONTH);
+            int row = date - 2;
+            String cell = column + row;
+            String range = "Tracking Log!" + cell;
+
+            // Create values to update spreadsheet with
+            // TODO get and use data validation source
+            ValueRange valueRange = new ValueRange();
+            List<List<Object>> values = new ArrayList<>();
+            List<Object> in = new ArrayList<>();
+            in.add("✔");
+            values.add(in);
+            valueRange.setValues(values);
+            valueRange.setMajorDimension("ROWS");
+            mService.spreadsheets().values()
+                    .update(spreadsheetId, range, valueRange)
+                    .setValueInputOption("RAW")
+                    .execute();
         }
 
 //        @Override
