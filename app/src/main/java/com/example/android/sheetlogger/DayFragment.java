@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class DayFragment extends Fragment {
     // TODO create class to represent task and change adapter to use that type
-    private ArrayAdapter<String> mDayAdapter;
+    private ArrayAdapter<ToDoItem> mDayAdapter;
 
     // TODO create local list of items to use offline, then sync when available
 
@@ -57,11 +57,11 @@ public class DayFragment extends Fragment {
         // The ArrayAdapter will take data from a source and
         // use it to populate the ListView it's attached to.
         mDayAdapter =
-                new ArrayAdapter<String>(
+                new ArrayAdapter<ToDoItem>(
                         getActivity(), // The current context (this activity)
                         R.layout.list_item_day, // The name of the layout ID.
                         R.id.list_item_day_textview, // The ID of the textview to populate.
-                        new ArrayList<String>());
+                        new ArrayList<ToDoItem>());
 
         // Get a reference to the ListView, and attach this adapter to it.
         final ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
@@ -92,11 +92,10 @@ public class DayFragment extends Fragment {
      * An asynchronous task that handles the Google Sheets API calls.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-    private class MakeRequestTask extends AsyncTask<Integer, Void, List<String>> {
+    private class MakeRequestTask extends AsyncTask<Integer, Void, List<ToDoItem>> {
         private com.google.api.services.sheets.v4.Sheets mService = null;
         private Exception mLastError = null;
         private Request request;
-        ArrayList<Boolean> highlights; // track if items have been checked off
         private final String spreadsheetId = "1JXj2kexyTpmym_WZ52zOGkVOsgzFxf3lB1jNxqjSXNE";
 
         MakeRequestTask(GoogleAccountCredential credential, Request req) {
@@ -107,7 +106,6 @@ public class DayFragment extends Fragment {
                     .setApplicationName("Sheet Logger")
                     .build();
             request = req;
-            highlights = new ArrayList<>();
         }
 
         /**
@@ -117,7 +115,7 @@ public class DayFragment extends Fragment {
          *               If request type = GET, not needed.
          */
         @Override
-        protected List<String> doInBackground(Integer... params) {
+        protected List<ToDoItem> doInBackground(Integer... params) {
             try {
                 if (request == Request.GET)
                     return getDataFromApi();
@@ -136,8 +134,9 @@ public class DayFragment extends Fragment {
          * @return List of tasks as Strings TODO List of tasks as objects
          * @throws IOException
          */
-        private List<String> getDataFromApi() throws IOException {
+        private List<ToDoItem> getDataFromApi() throws IOException {
             // TODO dynamically find column based on spreadsheet/user
+            // TODO create method to construct range string
             List<String> findRanges = new ArrayList<>();
             findRanges.add("Tracking Log!B2:G2");
             String row = Integer.toString(getTodayRow());
@@ -153,19 +152,20 @@ public class DayFragment extends Fragment {
 
             // Response containing names of the tasks
             List<List<Object>> tasks = ranges.get(0).getValues();
-            List<String> results = new ArrayList<>();
-            if (tasks != null) {
-                for (Object s : tasks.get(0)) {
-                    results.add(s.toString());
-                }
-            }
 
             // Response containing data entered for today
             List<List<Object>> data = ranges.get(1).getValues();
-            highlights.clear();
-            if (data != null) {
-                for (Object s : data.get(0)) {
-                    highlights.add(s.toString().equals("✔"));
+
+            // Assume length of these responses are the same
+            List<ToDoItem> results = new ArrayList<>();
+            if (tasks != null && data != null) {
+                for (int i = 0; i < tasks.get(0).size(); i++) {
+                    Object n = tasks.get(0).get(i); // Name of task
+                    Object d = data.get(0).get(i); // Data entered for today's task
+                    ToDoItem item = new ToDoItem(n.toString());
+                    // TODO remove hardcoded inputs
+                    item.setDone(d.toString().equals("✔"));
+                    results.add(item);
                 }
             }
 
@@ -179,6 +179,7 @@ public class DayFragment extends Fragment {
             // TODO get column as part of a class representing the item
             String column = String.valueOf(
                     Character.toChars((int)('B') + position));
+            // B represents first column of user Sip's tasks on spreadsheet
             // Get row (currently offset of date - 2)
             int row = getTodayRow();
             String cell = column + row;
@@ -189,6 +190,7 @@ public class DayFragment extends Fragment {
             ValueRange valueRange = new ValueRange();
             List<List<Object>> values = new ArrayList<>();
             List<Object> in = new ArrayList<>();
+            // TODO remove hardcoded inputs
             in.add("✔");
             values.add(in);
             valueRange.setValues(values);
@@ -217,7 +219,7 @@ public class DayFragment extends Fragment {
 //        }
 
         @Override
-        protected void onPostExecute(List<String> output) {
+        protected void onPostExecute(List<ToDoItem> output) {
 //            mProgress.hide();
             if (output == null || output.size() == 0) {
 //                mOutputText.setText("No results returned.");
@@ -225,7 +227,7 @@ public class DayFragment extends Fragment {
 //                output.add(0, "Data retrieved using the Google Sheets API:");
 //                mOutputText.setText(TextUtils.join("\n", output));
                 mDayAdapter.clear();
-                for (String task : output) {
+                for (ToDoItem task : output) {
                     mDayAdapter.add(task);
                 }
                 mDayAdapter.notifyDataSetChanged();
