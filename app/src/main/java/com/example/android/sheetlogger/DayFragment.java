@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -33,8 +32,7 @@ import java.util.List;
  * Encapsulates fetching the items for the day and displaying them in a {@link ListView} layout.
  */
 public class DayFragment extends Fragment {
-    // TODO create class to represent task and change adapter to use that type
-    private ArrayAdapter<ToDoItem> mDayAdapter;
+    private ToDoAdapter mDayAdapter;
 
     // TODO create local list of items to use offline, then sync when available
 
@@ -57,7 +55,7 @@ public class DayFragment extends Fragment {
         // The ArrayAdapter will take data from a source and
         // use it to populate the ListView it's attached to.
         mDayAdapter =
-                new ArrayAdapter<ToDoItem>(
+                new ToDoAdapter(
                         getActivity(), // The current context (this activity)
                         R.layout.list_item_day, // The name of the layout ID.
                         R.id.list_item_day_textview, // The ID of the textview to populate.
@@ -85,7 +83,7 @@ public class DayFragment extends Fragment {
         super.onStart();
         new MakeRequestTask(MainActivity.getCredential(),
                 Request.GET)
-                .execute();
+                .execute(new Integer[1]);
     }
 
     /**
@@ -154,17 +152,21 @@ public class DayFragment extends Fragment {
             List<List<Object>> tasks = ranges.get(0).getValues();
 
             // Response containing data entered for today
+            // TODO change these to List<Object> to improve readability
             List<List<Object>> data = ranges.get(1).getValues();
 
-            // Assume length of these responses are the same
             List<ToDoItem> results = new ArrayList<>();
             if (tasks != null && data != null) {
                 for (int i = 0; i < tasks.get(0).size(); i++) {
                     Object n = tasks.get(0).get(i); // Name of task
-                    Object d = data.get(0).get(i); // Data entered for today's task
                     ToDoItem item = new ToDoItem(n.toString());
-                    // TODO remove hardcoded inputs
-                    item.setDone(d.toString().equals("✔"));
+                    if (i < data.get(0).size()) {
+                        Object d = data.get(0).get(i); // Data entered for today's task
+                        // TODO remove hardcoded inputs
+                        item.setDone(d.toString().equals("✔"));
+                    } else {
+                        item.setDone(false);
+                    }
                     results.add(item);
                 }
             }

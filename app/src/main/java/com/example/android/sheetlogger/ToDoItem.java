@@ -18,9 +18,4 @@ public class ToDoItem extends Object {
     public void setDone(Boolean done) {
         this.done = done;
     }
-
-    @Override
-    public String toString() {
-        return taskName;
-    }
 }
