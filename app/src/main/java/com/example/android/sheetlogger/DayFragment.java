@@ -156,11 +156,11 @@ public class DayFragment extends Fragment {
             List<List<Object>> data = ranges.get(1).getValues();
 
             List<ToDoItem> results = new ArrayList<>();
-            if (tasks != null && data != null) {
+            if (tasks != null) {
                 for (int i = 0; i < tasks.get(0).size(); i++) {
                     Object n = tasks.get(0).get(i); // Name of task
                     ToDoItem item = new ToDoItem(n.toString());
-                    if (i < data.get(0).size()) {
+                    if (data != null && i < data.get(0).size()) {
                         Object d = data.get(0).get(i); // Data entered for today's task
                         // TODO remove hardcoded inputs
                         item.setDone(d.toString().equals("✔"));
