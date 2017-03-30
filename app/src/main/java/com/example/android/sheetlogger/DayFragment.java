@@ -1,7 +1,6 @@
 package com.example.android.sheetlogger;
 
 import android.app.Fragment;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -71,7 +70,6 @@ public class DayFragment extends Fragment {
                 pos[0] = position;
                 new MakeRequestTask(MainActivity.getCredential(),
                         Request.SET).execute(pos);
-                listView.getChildAt(position).setBackgroundColor(Color.DKGRAY);
             }
         });
 
@@ -152,7 +150,6 @@ public class DayFragment extends Fragment {
             List<List<Object>> tasks = ranges.get(0).getValues();
 
             // Response containing data entered for today
-            // TODO change these to List<Object> to improve readability
             List<List<Object>> data = ranges.get(1).getValues();
 
             List<ToDoItem> results = new ArrayList<>();
@@ -201,6 +198,9 @@ public class DayFragment extends Fragment {
                     .update(spreadsheetId, range, valueRange)
                     .setValueInputOption("RAW")
                     .execute();
+
+            // Update local list item
+            mDayAdapter.getItem(position).setDone(true);
         }
 
         /**
@@ -232,8 +232,8 @@ public class DayFragment extends Fragment {
                 for (ToDoItem task : output) {
                     mDayAdapter.add(task);
                 }
-                mDayAdapter.notifyDataSetChanged();
             }
+            mDayAdapter.notifyDataSetChanged();
         }
 
 //        @Override
