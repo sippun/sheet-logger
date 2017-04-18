@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +20,11 @@ import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -206,12 +210,31 @@ public class DayFragment extends Fragment {
         /**
          * Get the row corresponding to today's date on the spreadsheet
           */
-        private int getTodayRow() {
-            // TODO find row offset by comparing date in col A to today's date
+        private int getTodayRow() throws IOException{
             Calendar c = Calendar.getInstance();
-            int date = c.get(Calendar.DAY_OF_MONTH);
-            int offset = 2; // currently the offset is - 2
-            return date - offset; // if today is the 27th, we want row 25
+            int todayDate = c.get(Calendar.DAY_OF_MONTH);
+            int logDate = 0;
+
+            String cell = "Tracking Log!A3";
+            ValueRange response = this.mService.spreadsheets().values()
+                    .get(spreadsheetId, cell)
+                    .execute();
+            List<List<Object>> values = response.getValues();
+            String firstDay = "";
+            if (values != null) {
+                firstDay = values.get(0).toString();
+            }
+            // Parse date to date of month
+            SimpleDateFormat format = new SimpleDateFormat("EEEE mm/dd/yy");
+            try {
+                Date logFirst = format.parse(firstDay);
+                logDate = Integer.parseInt((String) DateFormat.format("dd", logFirst));
+            } catch (ParseException pe) {
+                return -1;
+            }
+
+            int offset = 3 - logDate; // Dates start from row 3
+            return todayDate - offset; // if today is the 27th, we want row 25
         }
 
 //        @Override
