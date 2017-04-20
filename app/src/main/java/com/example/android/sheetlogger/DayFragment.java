@@ -126,17 +126,16 @@ public class DayFragment extends Fragment {
         }
 
         /**
-         * Fetch a list of tasks to be done for the day, TODO and their completion status
-         * @return List of tasks as Strings TODO List of tasks as objects
+         * Fetch a list of tasks to be done for the day,
+         * @return List of tasks as Strings
          * @throws IOException
          */
         private List<ToDoItem> getDataFromApi() throws IOException {
-            // TODO dynamically find column based on spreadsheet/user
             // TODO create method to construct range string
             List<String> findRanges = new ArrayList<>();
-            findRanges.add("Tracking Log!B2:G2");
+            findRanges.add("Tracking Log!B1:K2");
             String row = Integer.toString(getTodayRow());
-            String range = "Tracking Log!B" + row + ":G" + row;
+            String range = "Tracking Log!B" + row + ":K" + row;
             findRanges.add(range);
 
             BatchGetValuesResponse response = this.mService.spreadsheets().values()
@@ -148,14 +147,31 @@ public class DayFragment extends Fragment {
 
             // Response containing names of the tasks
             List<List<Object>> tasks = ranges.get(0).getValues();
+            List<Object> userNames = tasks.get(0);
+            List<Object> taskNames = tasks.get(1);
+            String user = "Sip"; // TODO make this a preference
+            boolean found = false;
+            while (!found) {
+                if (userNames.get(0).toString().equals(user)) {
+                    found = true;
+                } else {
+                    taskNames.remove(0);
+                    userNames.remove(0);
+                }
+            }
+            int taskIndex = 0;
+            for (int i = 0; userNames.get(i).toString().equals("")
+                    || userNames.get(i).toString().equals(user); i++, taskIndex++) {}
+            taskIndex--; //Remove Weekly Goal column
 
             // Response containing data entered for today
             List<List<Object>> data = ranges.get(1).getValues();
+            // TODO truncate data to match tasks
 
             List<ToDoItem> results = new ArrayList<>();
             if (tasks != null) {
-                for (int i = 0; i < tasks.get(0).size(); i++) {
-                    Object n = tasks.get(0).get(i); // Name of task
+                for (int i = 0; i < taskIndex; i++) {
+                    Object n = taskNames.get(i); // Name of task
                     ToDoItem item = new ToDoItem(n.toString());
                     if (data != null && i < data.get(0).size()) {
                         Object d = data.get(0).get(i); // Data entered for today's task
