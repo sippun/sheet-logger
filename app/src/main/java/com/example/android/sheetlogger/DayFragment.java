@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,11 +19,8 @@ import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -224,17 +220,11 @@ public class DayFragment extends Fragment {
             if (values != null) {
                 firstDay = values.get(0).toString();
             }
-            // Parse date to date of month
-            SimpleDateFormat format = new SimpleDateFormat("EEEE mm/dd/yy");
-            try {
-                Date logFirst = format.parse(firstDay);
-                logDate = Integer.parseInt((String) DateFormat.format("dd", logFirst));
-            } catch (ParseException pe) {
-                return -1;
-            }
-
+            // Parse date to get int for date of month
+            String[] split = firstDay.split("/");
+            logDate = Integer.parseInt(split[1]);
             int offset = 3 - logDate; // Dates start from row 3
-            return todayDate - offset; // if today is the 27th, we want row 25
+            return todayDate + offset; // if today is the 27th, we want row 25
         }
 
 //        @Override
