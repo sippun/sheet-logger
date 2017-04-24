@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity
                     .add(R.id.activity_main, new DayFragment())
                     .commit();
         }
+        // TODO add ability to switch between days
+        // TODO add ability view summary of week
     }
 
     /**

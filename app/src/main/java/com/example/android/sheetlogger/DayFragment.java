@@ -260,8 +260,9 @@ public class DayFragment extends Fragment {
             if (values != null) {
                 firstDay = values.get(0).toString();
             }
-            // Parse date to get int for date of month
+            // Parse date to get int for date in month
             String[] split = firstDay.split("/");
+            // TODO check to make sure the month is right
             logDate = Integer.parseInt(split[1]);
             int offset = 3 - logDate; // Dates start from row 3
             return todayDate + offset; // if today is the 27th, we want row 25
