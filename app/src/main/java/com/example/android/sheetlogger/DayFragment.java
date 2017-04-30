@@ -262,7 +262,9 @@ public class DayFragment extends Fragment {
             }
             // Parse date to get int for date in month
             String[] split = firstDay.split("/");
-            // TODO check to make sure the month is right
+            int sheetMonth = Integer.parseInt(split[0].replaceAll("[\\D]", ""));
+            int thisMonth = c.get(Calendar.MONTH);
+            if (sheetMonth != thisMonth) return -1;
             logDate = Integer.parseInt(split[1]);
             int offset = 3 - logDate; // Dates start from row 3
             return todayDate + offset; // if today is the 27th, we want row 25
