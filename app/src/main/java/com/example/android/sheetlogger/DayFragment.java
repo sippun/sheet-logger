@@ -37,6 +37,7 @@ public class DayFragment extends Fragment {
     private ToDoAdapter mDayAdapter;
 
     // TODO create local list of items to use offline, then sync when available
+    // TODO store which day this fragment represents
 
     // A type to tell the AsyncTask what operation to perform on the API
     private enum Request {GET, SET}
@@ -220,7 +221,7 @@ public class DayFragment extends Fragment {
                     Character.toChars((int)('B') + position));
             // B represents first column of user Sip's tasks on spreadsheet
             // Get row (currently offset of date - 2)
-            int row = getTodayRow();
+            int row = getTodayRow(); // TODO get row once when setting up fragment
             String cell = column + row;
             String range = "Tracking Log!" + cell;
 
@@ -249,25 +250,30 @@ public class DayFragment extends Fragment {
         private int getTodayRow() throws IOException{
             Calendar c = Calendar.getInstance();
             int todayDate = c.get(Calendar.DAY_OF_MONTH);
-            int logDate = 0;
+            int thisMonth = c.get(Calendar.MONTH) + 1; // Months start from 0 here
 
-            String cell = "Tracking Log!A3";
+            String col = "Tracking Log!A3:A";
             ValueRange response = this.mService.spreadsheets().values()
-                    .get(spreadsheetId, cell)
+                    .get(spreadsheetId, col)
+                    .setMajorDimension("COLUMNS")
                     .execute();
             List<List<Object>> values = response.getValues();
-            String firstDay = "";
             if (values != null) {
-                firstDay = values.get(0).toString();
+                List<Object> dates = values.get(0);
+                for (int i = 0; i < dates.size(); i++) {
+                    String day = dates.get(i).toString();
+                    // Parse date to get int for date in month
+                    String[] split = day.split("/");
+                    int sheetMonth = Integer.parseInt(split[0].replaceAll("[\\D]", ""));
+                    if (sheetMonth == thisMonth) {
+                        int logDate = Integer.parseInt(split[1]);
+                        if (logDate == todayDate) {
+                            return i + 3; // dates start at row 3
+                        }
+                    }
+                }
             }
-            // Parse date to get int for date in month
-            String[] split = firstDay.split("/");
-            int sheetMonth = Integer.parseInt(split[0].replaceAll("[\\D]", ""));
-            int thisMonth = c.get(Calendar.MONTH);
-            if (sheetMonth != thisMonth) return -1;
-            logDate = Integer.parseInt(split[1]);
-            int offset = 3 - logDate; // Dates start from row 3
-            return todayDate + offset; // if today is the 27th, we want row 25
+            return -1;
         }
 
 //        @Override
