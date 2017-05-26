@@ -197,7 +197,7 @@ public class DayFragment extends Fragment {
             if (tasks != null) {
                 for (int i = 0; i < taskIndex; i++) {
                     Object n = taskNames.get(i); // Name of task
-                    ToDoItem item = new ToDoItem(n.toString());
+                    BoolItem item = new BoolItem(n.toString());
                     if (data != null && i < data.get(0).size()) {
                         Object d = data.get(0).get(i); // Data entered for today's task
                         // TODO remove hardcoded inputs
@@ -231,7 +231,12 @@ public class DayFragment extends Fragment {
             List<List<Object>> values = new ArrayList<>();
             List<Object> in = new ArrayList<>();
             // TODO remove hardcoded inputs
-            in.add("✔");
+            // Check local value
+            if (((BoolItem)mDayAdapter.getItem(position)).getDone()) {
+                in.add("");
+            } else {
+                in.add("✔");
+            }
             values.add(in);
             valueRange.setValues(values);
             valueRange.setMajorDimension("ROWS");
@@ -241,7 +246,7 @@ public class DayFragment extends Fragment {
                     .execute();
 
             // Update local list item
-            mDayAdapter.getItem(position).setDone(true);
+            ((BoolItem)mDayAdapter.getItem(position)).toggle();
         }
 
         /**

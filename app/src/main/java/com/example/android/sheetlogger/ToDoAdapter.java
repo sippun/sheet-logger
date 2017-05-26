@@ -26,10 +26,13 @@ public class ToDoAdapter extends ArrayAdapter<ToDoItem> {
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView myView =  (TextView) super.getView(position, convertView, parent);
         ToDoItem myItem = getItem(position);
-        myView.setText(myItem.taskName);
-        if (myItem.done) {
+        myView.setText(myItem.getName());
+        if (myItem instanceof BoolItem && ((BoolItem) myItem).getDone()) {
             myView.setBackgroundColor(Color.DKGRAY);
+        } else {
+            myView.setBackgroundColor(Color.WHITE);
         }
+
         return myView;
     }
 }

@@ -8,14 +8,14 @@ package com.example.android.sheetlogger;
  * Class to represent "to do" items
  */
 public class ToDoItem extends Object {
-    String taskName;
-    Boolean done;
+    private String taskName;
 
     public ToDoItem(String name) {
         this.taskName = name;
     }
 
-    public void setDone(Boolean done) {
-        this.done = done;
+    public String getName() {
+        return taskName;
     }
 }
+
