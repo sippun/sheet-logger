@@ -17,6 +17,11 @@ public class BoolItem extends ToDoItem {
         done = false;
     }
 
+    @Override
+    public String getValue() {
+        return done ? "✔" : "✖"; //TODO remove hardcode value
+    }
+
     public Boolean getDone() {
         return done;
     }

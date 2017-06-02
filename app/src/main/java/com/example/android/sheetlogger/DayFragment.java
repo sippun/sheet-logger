@@ -211,7 +211,6 @@ public class DayFragment extends Fragment {
                         NumItem item = new NumItem(n.toString());
                         if (data != null && i < data.get(0).size()) {
                             Object d = data.get(0).get(i); // Data entered for today's task
-                            // TODO remove hardcoded inputs
                             item.setNum(Integer.parseInt(d.toString()));
                         }
                         results.add(item);

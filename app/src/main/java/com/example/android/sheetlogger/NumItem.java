@@ -17,6 +17,11 @@ public class NumItem extends ToDoItem{
         myNum = num;
     }
 
+    @Override
+    public String getValue() {
+        return Integer.toString(myNum);
+    }
+
     public int getNum() {
         return myNum;
     }

@@ -14,6 +14,8 @@ public class ToDoItem extends Object {
         this.taskName = name;
     }
 
+    public String getValue() {return "";}
+
     public String getName() {
         return taskName;
     }
