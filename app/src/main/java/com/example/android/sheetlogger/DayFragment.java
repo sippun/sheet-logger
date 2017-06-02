@@ -197,15 +197,25 @@ public class DayFragment extends Fragment {
             if (tasks != null) {
                 for (int i = 0; i < taskIndex; i++) {
                     Object n = taskNames.get(i); // Name of task
-                    BoolItem item = new BoolItem(n.toString());
-                    if (data != null && i < data.get(0).size()) {
-                        Object d = data.get(0).get(i); // Data entered for today's task
-                        // TODO remove hardcoded inputs
-                        item.setDone(d.toString().equals("✔"));
+                    if (i < 3) { // TODO DON'T DO IT LIKE THIS
+                        BoolItem item = new BoolItem(n.toString());
+                        if (data != null && i < data.get(0).size()) {
+                            Object d = data.get(0).get(i); // Data entered for today's task
+                            // TODO remove hardcoded inputs
+                            item.setDone(d.toString().equals("✔"));
+                        } else {
+                            item.setDone(false);
+                        }
+                        results.add(item);
                     } else {
-                        item.setDone(false);
+                        NumItem item = new NumItem(n.toString());
+                        if (data != null && i < data.get(0).size()) {
+                            Object d = data.get(0).get(i); // Data entered for today's task
+                            // TODO remove hardcoded inputs
+                            item.setNum(Integer.parseInt(d.toString()));
+                        }
+                        results.add(item);
                     }
-                    results.add(item);
                 }
             }
 
