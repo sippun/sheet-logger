@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -22,6 +23,7 @@ import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -65,8 +67,14 @@ public class DayFragment extends Fragment {
                         R.id.list_item_day_textview, // The ID of the textview to populate.
                         new ArrayList<ToDoItem>());
 
+        //Set date in title
+        TextView title = (TextView) rootView.findViewById(R.id.datetext_day);
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("EEE, MMMM d, yyyy");
+        title.setText(df.format(c.getTime()));
+
         // Get a reference to the ListView, and attach this adapter to it.
-        final ListView listView = (ListView) rootView.findViewById(R.id.listview_today);
+        final ListView listView = (ListView) rootView.findViewById(R.id.listview_day);
         listView.setAdapter(mDayAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
