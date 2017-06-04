@@ -71,6 +71,14 @@ public class DayFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                // Update local list item
+                ToDoItem item = mDayAdapter.getItem(position);
+                if (item instanceof BoolItem) {
+                    ((BoolItem)item).toggle();
+                } else if (item instanceof NumItem) {
+                    // TODO Open dialog to change num
+                    ((NumItem)item).setNum(0);
+                }
                 Integer[] pos = new Integer[1];
                 pos[0] = position;
                 new MakeRequestTask(MainActivity.getCredential(),
@@ -234,18 +242,11 @@ public class DayFragment extends Fragment {
             String cell = column + row;
             String range = "Tracking Log!" + cell;
 
-            // Create values to update spreadsheet with
-            // TODO get and use data validation source
+            // Create objects to update spreadsheet with
             ValueRange valueRange = new ValueRange();
             List<List<Object>> values = new ArrayList<>();
             List<Object> in = new ArrayList<>();
-            // TODO remove hardcoded inputs
-            // Check local value
-            if (((BoolItem)mDayAdapter.getItem(position)).getDone()) {
-                in.add("");
-            } else {
-                in.add("✔");
-            }
+            in.add(mDayAdapter.getItem(position).getValue());
             values.add(in);
             valueRange.setValues(values);
             valueRange.setMajorDimension("ROWS");
@@ -253,9 +254,6 @@ public class DayFragment extends Fragment {
                     .update(spreadsheetId, range, valueRange)
                     .setValueInputOption("RAW")
                     .execute();
-
-            // Update local list item
-            ((BoolItem)mDayAdapter.getItem(position)).toggle();
         }
 
         /**
@@ -266,7 +264,7 @@ public class DayFragment extends Fragment {
             int todayDate = c.get(Calendar.DAY_OF_MONTH);
             int thisMonth = c.get(Calendar.MONTH) + 1; // Months start from 0 here
 
-            String col = "Tracking Log!A3:A";
+            String col = "Tracking Log!A3:A"; // TODO parse whole column, start with dates?
             ValueRange response = this.mService.spreadsheets().values()
                     .get(spreadsheetId, col)
                     .setMajorDimension("COLUMNS")
