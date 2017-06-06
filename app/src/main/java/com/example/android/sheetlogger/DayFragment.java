@@ -1,9 +1,11 @@
 package com.example.android.sheetlogger;
 
+import android.app.Dialog;
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,7 +13,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -27,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Joel on 3/20/2017.
@@ -35,8 +40,9 @@ import java.util.List;
 /**
  * Encapsulates fetching the items for the day and displaying them in a {@link ListView} layout.
  */
-public class DayFragment extends Fragment {
+public class DayFragment extends Fragment implements NumberPicker.OnValueChangeListener{
     private ToDoAdapter mDayAdapter;
+    static Dialog d;
 
     // TODO create local list of items to use offline, then sync when available
     // TODO store which day this fragment represents
@@ -70,7 +76,7 @@ public class DayFragment extends Fragment {
         //Set date in title
         TextView title = (TextView) rootView.findViewById(R.id.datetext_day);
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("EEE, MMMM d, yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("EEE, MMMM d, yyyy", Locale.US);
         title.setText(df.format(c.getTime()));
 
         // Get a reference to the ListView, and attach this adapter to it.
@@ -83,18 +89,56 @@ public class DayFragment extends Fragment {
                 ToDoItem item = mDayAdapter.getItem(position);
                 if (item instanceof BoolItem) {
                     ((BoolItem)item).toggle();
+                    updateSheet(position);
                 } else if (item instanceof NumItem) {
-                    // TODO Open dialog to change num
-                    ((NumItem)item).setNum(0);
+                    showDialog(position);
                 }
-                Integer[] pos = new Integer[1];
-                pos[0] = position;
-                new MakeRequestTask(MainActivity.getCredential(),
-                        Request.SET).execute(pos);
             }
         });
 
         return rootView;
+    }
+
+    private void updateSheet(int position) {
+        Integer[] pos = new Integer[1];
+        pos[0] = position;
+        new MakeRequestTask(MainActivity.getCredential(),
+                Request.SET).execute(pos);
+    }
+
+    @Override
+    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+        Log.i("value is",""+newVal);
+    }
+
+    public void showDialog(final int position) {
+
+        final Dialog d = new Dialog(getActivity());
+        d.setTitle(mDayAdapter.getItem(position).getName());
+        d.setContentView(R.layout.list_item_num_dialog);
+        Button b1 = (Button) d.findViewById(R.id.button1);
+        Button b2 = (Button) d.findViewById(R.id.button2);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        np.setMaxValue(100);
+        np.setMinValue(0);
+        np.setWrapSelectorWheel(false);
+        np.setOnValueChangedListener(this);
+        b1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((NumItem)mDayAdapter.getItem(position)).setNum(np.getValue());
+                updateSheet(position);
+                d.dismiss();
+            }
+        });
+        b2.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+        d.show();
     }
 
     @Override
